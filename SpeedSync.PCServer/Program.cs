@@ -25,7 +25,54 @@ namespace SpeedSync.PCServer
                 { "port", "14325" },
                 { "syncPath" , "./SyncPath/" }
             };
+            var config = PropertiesHelper.AutoCheck(htStandard, "./config.properties");
+            if ((string)config["type"] != "SpeedSync_Config")
+            {
+                Log.SaveLog("错误:加载的config.properties不是SpeedSync的配置文件!正在重置应用程序配置...");
+                File.Delete("./config.properties");
+                config = PropertiesHelper.AutoCheck(htStandard, "./config.properties");
+            }
+            if ((string)config["password"] == "none")
+            {
+                Log.SaveLog("欢迎使用SpeedSync!请先设置应用程序!\n\n");
+                Log.SaveLog("第一步:请设置访问密码\n为了安全起见,每次设备进行连接时都需要校验您的访问密码,并取得访问密钥.您的密码应当是不少于6位的字母+数字的组合");
+                Console.Write("请输入密码并按下回车键:");
+                var passwd = Console.ReadLine();
+                Console.Write("请再次输入密码并按下回车键:");
+                if (passwd != Console.ReadLine()) 
+                {
+                    Log.SaveLog("两次输入的密码不一致!请核对后再次输入!!");
+                    Main(args);
+                    return;
+                }
+                config["password"] = passwd;
+                Console.Clear();
+                Log.SaveLog("第二步:设置服务端口\nSpeedSync程序支持用户自定义服务端口,默认值为14325,如果此端口已经被占用或您希望使用其他端口,请在下方输入.如果没有此需求或者不知道这是什么,请直接按下回车.");
+                Console.Write("如果您需要修改端口,请输入端口号:");
+                var userPort = Console.ReadLine();
+                int userPortNum = 14325;
+                try
+                {
+                    if (userPort != "") 
+                    {
+                        userPortNum = Convert.ToInt32(userPort);
+                    }
+                    else
+                    {
+                        userPort = "14325";
+                    }
+                    
+                }
+                catch (Exception ex)
+                {
+                    Log.SaveLog($"引发异常:{ex}");
+                    Log.SaveLog("请检查您输入的端口号!您的输入无法被识别为数字!设置程序已中断.");
+                    Main(args);
+                    return;
+                }
 
+
+            }
             Console.WriteLine("尝试运行主程序模块...");
             Thread MvcThread = new Thread(StartMvc)
             {
